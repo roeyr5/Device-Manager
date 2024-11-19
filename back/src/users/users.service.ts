@@ -11,16 +11,27 @@ export class UsersService {
 
 
   async signin(loginuserdto:LoginUserDto) : Promise<IUsers> {
+    console.log(loginuserdto.email);
     const user = await this.UsersModel.findOne({email : loginuserdto.email}).exec();
+    console.log(user);
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+      console.log(1);
+      throw new UnauthorizedException('Invalid email');
     }
     const isPasswordMatching = (loginuserdto.password === user.password);
     if (!isPasswordMatching) {
+      console.log(2);
       throw new UnauthorizedException('Invalid email or password');
     }
-    
+    console.log(3);
     return user;    
+  }
+
+  async createUser(createUserDto: LoginUserDto): Promise<IUsers> {
+
+    const { email, password } = createUserDto;
+    const newUser = new this.UsersModel({ email, password });
+    return await newUser.save(); // This saves the user to the database
   }
 
 }
