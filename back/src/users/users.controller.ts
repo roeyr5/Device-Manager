@@ -25,7 +25,7 @@ export class UsersController {
         message: 'Login success'});
     }
     catch(err)
-    {
+    { 
       return response.status(HttpStatus.BAD_REQUEST).json({
         statusCode: 400,
         message: 'Error: Login unsuccess',
@@ -35,9 +35,21 @@ export class UsersController {
   }
 
   @Post('create')
-  public async createUser(@Body() createUserDto: LoginUserDto) {
+  public async createUser(@Res() response ,@Body() createUserDto: LoginUserDto) {
+    const existmail = await this.usersService.Checkmail(createUserDto.email);
+    if(existmail)
+      {
+      return response.status(HttpStatus.BAD_REQUEST).json({
+        statusCode: 400,
+        message: 'Signup unsuccess, mail already exists in system',
+        error: 'Bad Request'
+       });
+      } 
     const user = await this.usersService.createUser(createUserDto);
-    return { message: 'User created successfully', user };
+    if(user){
+      return response.status(HttpStatus.OK).json({
+        message: 'Created user'});
+    }
   }
 
   
