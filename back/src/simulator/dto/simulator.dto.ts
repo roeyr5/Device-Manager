@@ -1,6 +1,7 @@
 
 export class SimulatorDto {
-  port:number;
+  address:string;
   channel: string;
   type: string;
+  port:number;
 }

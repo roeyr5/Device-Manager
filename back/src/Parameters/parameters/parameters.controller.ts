@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ParametersService } from './parameters.service';
+import { promises } from 'node:readline';
 
 @Controller('parameters')
 export class ParametersController {
@@ -8,6 +9,11 @@ export class ParametersController {
 
   @Get('all')
   getall():Promise<string[]> {
-    return this.paraservice.getallID();
+    return this.paraservice.getAllIdentifiers();
+  }
+
+  @Get('uavs')
+  getuavs():Promise<{ identifier: string; type: string }[]> {
+    return this.paraservice.getUavs();
   }
 }

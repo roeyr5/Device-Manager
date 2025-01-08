@@ -6,4 +6,5 @@ export class Parameter {
   Identifier: string;
 }
 
+
 export const ParameterSchema = SchemaFactory.createForClass(Parameter);
