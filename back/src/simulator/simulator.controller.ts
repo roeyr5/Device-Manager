@@ -75,9 +75,28 @@ export class SimulatorController {
 // }
   
   @Post('StartPcap')
-  public async StartPcap( @Res() res: Request, @Body() dto: SimulatorDto) 
+  public async StartPcap( @Res() res: Response, @Body() dto: {uavnNumber:number ,channel:string , type:string}) //pcaps are automatic - 6000 - fiberdown 6001 - fiberup
   {
-    
+    try 
+    {
+      const result = await this.simulatorservice.StartPcap(dto);
+
+      if(result == '1')
+        return res.status(409).json({message : 'Uav already stream data'});
+      if(result == '2')
+        return res.status(409).json({message : 'Address in use'});
+      if(result == '3')
+        return res.status(500).json({message : 'error'});
+
+      await this.simulatorservice.StartStreamPcap(dto); //after the check of telemtry it will fetch data in simualtor
+      
+      return res.status(200).json({ message: 'StartPcap executed' });
+    } 
+    catch (error) 
+    {
+      console.error('error in controller', error);
+      return res.status(500).json({ message: 'Failed to fetch data', error: error.message });    
+    }
   }
 
   @Get('Stop')

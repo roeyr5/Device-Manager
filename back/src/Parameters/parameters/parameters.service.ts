@@ -10,6 +10,8 @@ export class ParametersService {
     @InjectModel('ParametersUp') private parameterUpModel: Model<Parameter>,
     @InjectModel('ParametersDown') private parameterDownModel: Model<Parameter>,
     @InjectModel('Uavs') private UavsModel: Model<Uav>,
+    @InjectModel('UavsNumbers') private UavsNumbersModel: Model<Uav>,
+
   ) {}
 
   async getAllIdentifiers(): Promise<string[]> 
@@ -31,7 +33,13 @@ export class ParametersService {
     const identifiers = uavs.map((uav) => ({
       identifier: uav.identifier,type: uav.type,
     }));
-  
+
     return identifiers;
+  }
+
+  async getUavsNumbers(): Promise<string[]> {
+    const uavs = await this.UavsNumbersModel.find().select('identifier').exec();
+    const uavsIDs = [...uavs.map((id)=> id.identifier)];
+    return uavsIDs;
   }
 }
