@@ -7,26 +7,29 @@ import { Uav } from './schemas/uavs.schema';
 @Injectable()
 export class ParametersService {
   constructor(
-    @InjectModel('ParametersUp') private parameterUpModel: Model<Parameter>,
-    @InjectModel('ParametersDown') private parameterDownModel: Model<Parameter>,
+    @InjectModel('ParametersFBDown') private fbDownModel: Model<Parameter>,
+    @InjectModel('ParametersFBUp') private fbUpModel: Model<Parameter>,
+    @InjectModel('ParametersMissionDown') private missionDownModel: Model<Parameter>,
+    @InjectModel('ParametersMissionUp') private missionUpModel: Model<Parameter>,
     @InjectModel('Uavs') private UavsModel: Model<Uav>,
     @InjectModel('UavsNumbers') private UavsNumbersModel: Model<Uav>,
 
   ) {}
 
-  async getAllIdentifiers(): Promise<string[]> 
-  {
-    const upParameters = await this.parameterUpModel.find().select('Identifier').exec();
-    const downParameters = await this.parameterDownModel.find().select('Identifier').exec();
+  async getParameters(type: string): Promise<string[]> {
+    const model =
+      type === 'FBDown'
+        ? this.fbDownModel
+        : type === 'FBUp'
+        ? this.fbUpModel
+        : type === 'MissionDown'
+        ? this.missionDownModel
+        : this.missionUpModel;
 
-    const allIdentifiers = [
-      ...upParameters.map((parameter) => parameter.Identifier),
-      ...downParameters.map((parameter) => parameter.Identifier),
-    ];
-
-    const uniqueIdentifiers = Array.from(new Set(allIdentifiers));
-    return uniqueIdentifiers;
+    const parameters = await model.find().select('Identifier').exec();
+    return parameters.map((param) => param.Identifier);
   }
+
 
   async getUavs(): Promise<{ identifier: string; type: string }[]> {
     const uavs = await this.UavsModel.find().select('identifier type').exec();

@@ -7,9 +7,14 @@ export class ParametersController {
 
   constructor(private readonly paraservice: ParametersService) {}
 
-  @Get('all')
-  getall():Promise<string[]> {
-    return this.paraservice.getAllIdentifiers();
+  @Get('/all')
+  async getAllParameters(): Promise<{ [key: string]: string[] }> {
+    return {
+      FBDown: await this.paraservice.getParameters('FBDown'),
+      FBUp: await this.paraservice.getParameters('FBUp'),
+      MissionDown: await this.paraservice.getParameters('MissionDown'),
+      MissionUp: await this.paraservice.getParameters('MissionUp'),
+    };
   }
 
   @Get('uavs')

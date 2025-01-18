@@ -2,14 +2,19 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ParametersService } from './parameters.service';
 import { ParametersController } from './parameters.controller';
-import { ParameterSchema , Parameter} from './schemas/parameters.schema';
+import { getParameterModel} from './schemas/parameters.schema';
 import { UavSchema } from './schemas/uavs.schema';
 import { UavNumberSchema } from './schemas/uavsNumbera.schema';
 
+
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: 'ParametersUp', schema: ParameterSchema }]),
-    MongooseModule.forFeature([{ name: 'ParametersDown', schema: ParameterSchema }]),
+    MongooseModule.forFeature([
+      getParameterModel('ParametersFBDown'), 
+      getParameterModel('ParametersFBUp'),   
+      getParameterModel('ParametersMissionDown'), 
+      getParameterModel('ParametersMissionUp'),   
+    ]),
     MongooseModule.forFeature([{ name: 'Uavs', schema: UavSchema }]),
     MongooseModule.forFeature([{ name: 'UavsNumbers', schema: UavNumberSchema }]),
 
