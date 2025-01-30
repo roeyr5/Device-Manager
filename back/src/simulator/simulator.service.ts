@@ -41,8 +41,10 @@ export class SimulatorService {
     catch (error) 
     {
       console.error('error :', error.message);
+      throw error; 
     }
   }
+
   public async PauseIcd(dto : {port,address}):Promise<string>
   {
     const telemtryUrl = `${this.telemetryApi}Pause`
@@ -50,11 +52,22 @@ export class SimulatorService {
     const response = await firstValueFrom(this.httpService.post(telemtryUrl, dto));
     return response.data;
   }
+
   public async ContinueIcd(dto : {port,address}):Promise<string>
   {
     const telemtryUrl = `${this.telemetryApi}Continue`
     console.log(dto);
     const response = await firstValueFrom(this.httpService.post(telemtryUrl, dto));
+    return response.data;
+  }
+
+  public async StopIcd(dto : {port,address}):Promise<string>
+  {
+    const telemtryUrl = `${this.telemetryApi}Stop`
+    const simualtorUrl = `${this.simulatorApi}Stop`
+    console.log(dto);
+    const response = await firstValueFrom(this.httpService.post(telemtryUrl, dto));
+    const res = await firstValueFrom(this.httpService.post(simualtorUrl,dto))
     return response.data;
   }
 
@@ -84,6 +97,7 @@ export class SimulatorService {
     catch (error) 
     {
       console.error('error :', error.message);
+      throw error; 
     }
   }
 
@@ -98,8 +112,59 @@ export class SimulatorService {
     catch(error)
     {
       console.error('error : ',error.message);
+      throw error; 
     }
   }
 
+  public async 
+
+  public async getPrimariesComm(): Promise<Map<string, string>> {
+    const simulatorUrl = `${this.simulatorApi}Primaries`;
+    try {
+      const response = await firstValueFrom(this.httpService.get(simulatorUrl));
+      const result = new Map<string, string>();
+
+      if (typeof response.data === 'object' && response.data !== null) 
+      { 
+        for (const key in response.data) {
+          if (response.data.hasOwnProperty(key)) {
+            const value = response.data[key];
+            result.set(String(key), String(value)); 
+          }
+        }
+      } 
+      else {
+        throw new Error("No live data");
+      }
+
+      return result;
+    } catch (error) {
+      throw error; 
+    }
+  }
+
+  public async changePrimaryCommunicate(uavNumber: string): Promise<void> { 
+    try {
+      console.log(`Changing communication for UAV number: ${uavNumber}`);
+      const simulatorUrl = `${this.simulatorApi}PrimaryCommunication`;
+      
+      const response = await firstValueFrom(this.httpService.post(simulatorUrl,{uavNumber}));
+    } catch (error) {
+      console.error('Error in service:', error);
+      throw error; 
+    }
+  }
+
+  public async getTelemetryChannels() :Promise<SimulatorDto[]> {
+    try {
+      const simulatorUrl = `${this.telemetryApi}GetChannels`;
+      const response = await firstValueFrom(this.httpService.get(simulatorUrl));
+      return response.data;
+    } catch (error) {
+      console.error('Error in service:', error);
+      throw error; 
+    }
+  }
 }
+
 

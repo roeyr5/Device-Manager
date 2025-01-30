@@ -5,4 +5,5 @@ export class SimulatorDto {
   channel: string;
   type: string;
   port:number;
+  status?:string;
 }
