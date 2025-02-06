@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { SimulatorDto } from './dto/simulator.dto';
-import { firstValueFrom } from 'rxjs';
+import { first, firstValueFrom } from 'rxjs';
 import { InjectModel } from '@nestjs/mongoose';
 import { Uav } from './schema/uavs.schema';
 import { Model } from 'mongoose';
@@ -9,114 +9,131 @@ import { link } from 'fs';
 
 @Injectable()
 export class SimulatorService {
-  constructor(private readonly httpService: HttpService ,@InjectModel('Uavs') private UavsModel: Model<Uav>,) {}
+  constructor(
+    private readonly httpService: HttpService,
+    @InjectModel('Uavs') private UavsModel: Model<Uav>,
+  ) {}
 
   private telemetryApi = 'http://localhost:5000/';
   private simulatorApi = 'http://localhost:7000/Simulator/';
-  
-  public async StartstreamIcd(dto:SimulatorDto):Promise<void>
-  {
-    try
-    {
-      const simulatorUrl = `${this.simulatorApi}StartIcd`
-      const response = await firstValueFrom(this.httpService.post(simulatorUrl, dto));
+
+  public async StartstreamIcd(dto: SimulatorDto): Promise<void> {
+    try {
+      const simulatorUrl = `${this.simulatorApi}StartIcd`;
+      const response = await firstValueFrom(
+        this.httpService.post(simulatorUrl, dto),
+      );
       console.log('started ICD fetching :', response.data);
-    }
-    catch(error)
-    {
-      console.error('error : ',error.message);
+    } catch (error) {
+      console.error('error : ', error.message);
     }
   }
 
-  public async StartIcd(dto: SimulatorDto): Promise<string> 
-  {
-    try 
-    {
+  public async startIcd(dto: SimulatorDto): Promise<string> {
+    try {
       const telemtryUrl = `${this.telemetryApi}Start`;
-      const response = await firstValueFrom(this.httpService.post(telemtryUrl, dto));
-      
+      const response = await firstValueFrom(
+        this.httpService.post(telemtryUrl, dto),
+      );
+      console.log(response);
       return response.data;
-
-    } 
-    catch (error) 
-    {
+    } catch (error) {
       console.error('error :', error.message);
-      throw error; 
+      throw error;
     }
   }
 
-  public async PauseIcd(dto : {port,address}):Promise<string>
-  {
-    const telemtryUrl = `${this.telemetryApi}Pause`
+  public async PauseIcd(dto: { port; address }): Promise<string> {
+    const telemtryUrl = `${this.telemetryApi}Pause`;
     console.log(dto);
-    const response = await firstValueFrom(this.httpService.post(telemtryUrl, dto));
+    const response = await firstValueFrom(
+      this.httpService.post(telemtryUrl, dto),
+    );
     return response.data;
   }
 
-  public async ContinueIcd(dto : {port,address}):Promise<string>
-  {
-    const telemtryUrl = `${this.telemetryApi}Continue`
+  public async ContinueIcd(dto: { port; address }): Promise<string> {
+    const telemtryUrl = `${this.telemetryApi}Continue`;
     console.log(dto);
-    const response = await firstValueFrom(this.httpService.post(telemtryUrl, dto));
+    const response = await firstValueFrom(
+      this.httpService.post(telemtryUrl, dto),
+    );
     return response.data;
   }
 
-  public async StopIcd(dto : {port,address}):Promise<string>
-  {
-    const telemtryUrl = `${this.telemetryApi}Stop`
-    const simualtorUrl = `${this.simulatorApi}Stop`
-    console.log(dto);
-    const response = await firstValueFrom(this.httpService.post(telemtryUrl, dto));
-    const res = await firstValueFrom(this.httpService.post(simualtorUrl,dto))
+  public async stopIcd(dto: { port; address; pcap }): Promise<string> {
+    const telemtryUrl = `${this.telemetryApi}Stop`;
+    const response = await firstValueFrom(
+      this.httpService.post(telemtryUrl, dto),
+    );
+
+    if (dto.pcap) {
+      console.log('1');
+      const simualtorUrl = `${this.simulatorApi}StopPcap`;
+      const res = await firstValueFrom(
+        this.httpService.get(`${simualtorUrl}?port=${dto.port}`),
+      );
+    } else {
+      console.log('2');
+      const simualtorUrl = `${this.simulatorApi}StopIcd`;
+      const res = await firstValueFrom(
+        this.httpService.get(
+          `${simualtorUrl}?channelName=${response.data.uavNumber + response.data.channelNameType}`,
+        ),
+      );
+    }
     return response.data;
   }
 
+  public async startPcap(dto: {
+    filename: string;
+    uavNumber: number;
+  }): Promise<any> {
+    try {
+      const data = await this.startStreamPcap(dto);
+      console.log('data : ', data);
 
+      const sortedData = data.sort(
+        (a: { destinationPort: number }, b: { destinationPort: number }) =>
+          a.destinationPort - b.destinationPort,
+      );
+      const firstChannel = sortedData[0];
 
-  public async StartPcap(dto: {uavnNumber:number, channel:string, type:string }): Promise<string> 
-  {
-    try 
-    {
-      const uav = await this.UavsModel.findOne({ identifier: dto.channel, type: dto.type }).select('address port').lean().exec();
-      if (!uav) {
-        throw new Error('not found uav for channel and type.');
-      }
-      console.log(uav);
-
-      const address = uav.address;
-      const port = uav.port;
-      const uavnum = dto.uavnNumber;
-      const channel = dto.channel;
-      const type = dto.type;
+      const channelData: SimulatorDto = {
+        uavnumber: dto.uavNumber,
+        address: firstChannel.destinationIp,
+        port: firstChannel.destinationPort,
+        pcap: true,
+      };
 
       const telemtryUrl = `${this.telemetryApi}Start`;
-      const response = await firstValueFrom(this.httpService.post(telemtryUrl, {uavnum,address,channel,type,port}));
-      
-      return response.data;
-    } 
-    catch (error) 
-    {
+
+      const response = await firstValueFrom(
+        this.httpService.post(telemtryUrl, channelData),
+      );
+      return response;
+    } catch (error) {
       console.error('error :', error.message);
-      throw error; 
+      throw error;
     }
   }
 
-  public async StartStreamPcap(dto:{channel,type}):Promise<void>
-  {
-    try
-    {
-      const simulatorUrl = `${this.simulatorApi}StartPcap`
-      const response = await firstValueFrom(this.httpService.get(simulatorUrl, {params: {link: dto.channel + dto.type +".pcap"}}));
+  public async startStreamPcap(dto: {
+    filename: string;
+    uavNumber: number;
+  }): Promise<{ destinationIp: string; destinationPort: number }[]> {
+    try {
+      const simulatorUrl = `${this.simulatorApi}StartPcap`;
+      const response = await firstValueFrom(
+        this.httpService.post(simulatorUrl, dto),
+      );
       console.log('started ICD fetching :', response.data);
-    }
-    catch(error)
-    {
-      console.error('error : ',error.message);
-      throw error; 
+      return response.data;
+    } catch (error) {
+      console.error('error : ', error.message);
+      throw error;
     }
   }
-
-  public async 
 
   public async getPrimariesComm(): Promise<Map<string, string>> {
     const simulatorUrl = `${this.simulatorApi}Primaries`;
@@ -124,47 +141,45 @@ export class SimulatorService {
       const response = await firstValueFrom(this.httpService.get(simulatorUrl));
       const result = new Map<string, string>();
 
-      if (typeof response.data === 'object' && response.data !== null) 
-      { 
+      if (typeof response.data === 'object' && response.data !== null) {
         for (const key in response.data) {
           if (response.data.hasOwnProperty(key)) {
             const value = response.data[key];
-            result.set(String(key), String(value)); 
+            result.set(String(key), String(value));
           }
         }
-      } 
-      else {
-        throw new Error("No live data");
+      } else {
+        throw new Error('No live data');
       }
 
       return result;
     } catch (error) {
-      throw error; 
+      throw error;
     }
   }
 
-  public async changePrimaryCommunicate(uavNumber: string): Promise<void> { 
+  public async changePrimaryCommunicate(uavNumber: string): Promise<void> {
     try {
       console.log(`Changing communication for UAV number: ${uavNumber}`);
       const simulatorUrl = `${this.simulatorApi}PrimaryCommunication`;
-      
-      const response = await firstValueFrom(this.httpService.post(simulatorUrl,{uavNumber}));
+
+      const response = await firstValueFrom(
+        this.httpService.post(simulatorUrl, { uavNumber }),
+      );
     } catch (error) {
       console.error('Error in service:', error);
-      throw error; 
+      throw error;
     }
   }
 
-  public async getTelemetryChannels() :Promise<SimulatorDto[]> {
+  public async getTelemetryChannels(): Promise<Map<number, SimulatorDto[]>> {
     try {
       const simulatorUrl = `${this.telemetryApi}GetChannels`;
       const response = await firstValueFrom(this.httpService.get(simulatorUrl));
       return response.data;
     } catch (error) {
       console.error('Error in service:', error);
-      throw error; 
+      throw error;
     }
   }
 }
-
-

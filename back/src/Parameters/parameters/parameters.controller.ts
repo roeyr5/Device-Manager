@@ -21,6 +21,7 @@ export class ParametersController {
   getuavs():Promise<{ identifier: string; type: string }[]> {
     return this.paraservice.getUavs();
   }
+  
   @Get('uavslist')
   getUavsNumbers():Promise<string[]> {
     return this.paraservice.getUavsNumbers();
