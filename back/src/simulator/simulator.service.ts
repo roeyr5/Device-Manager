@@ -29,6 +29,7 @@ export class SimulatorService {
     }
   }
 
+
   public async startIcd(dto: SimulatorDto): Promise<string> {
     try {
       const telemtryUrl = `${this.telemetryApi}Start`;
@@ -85,10 +86,13 @@ export class SimulatorService {
     return response.data;
   }
 
-  public async startPcap(dto: {
-    filename: string;
-    uavNumber: number;
-  }): Promise<any> {
+  public async changeSimulateTime (dto: { uavNumber : number , time : number}){
+      const telemtryUrl = `${this.simulatorApi}ChangeSimulateTime`;
+      const response = await firstValueFrom( this.httpService.post(telemtryUrl, dto));
+      return response.data;
+  }
+
+  public async startPcap(dto: { filename: string; uavNumber: number;}): Promise<any> {
     try {
       const data = await this.startStreamPcap(dto);
       console.log('data : ', data);
@@ -118,21 +122,40 @@ export class SimulatorService {
     }
   }
 
-  public async startStreamPcap(dto: {
-    filename: string;
-    uavNumber: number;
-  }): Promise<{ destinationIp: string; destinationPort: number }[]> {
+  public async startStreamPcap(dto: { filename: string; uavNumber: number; }): Promise<{ destinationIp: string; destinationPort: number }[]> {
     try {
       const simulatorUrl = `${this.simulatorApi}StartPcap`;
-      const response = await firstValueFrom(
-        this.httpService.post(simulatorUrl, dto),
-      );
+      const response = await firstValueFrom( this.httpService.post(simulatorUrl, dto),);
       console.log('started ICD fetching :', response.data);
       return response.data;
     } catch (error) {
       console.error('error : ', error.message);
       throw error;
     }
+  }
+
+  public async getTimeCommunications():Promise<Map<number,number>>{
+    const simulatorUrl = `${this.simulatorApi}TimeCommunications`;
+    try {
+      const response = await firstValueFrom(this.httpService.get(simulatorUrl));
+      const result = new Map<number, number>();
+
+      if (typeof response.data === 'object' && response.data !== null) {
+        for (const key in response.data) {
+          if (response.data.hasOwnProperty(key)) {
+            const value = response.data[key];
+            result.set(Number(key), Number(value));
+          }
+        }
+      } else {
+        throw new Error('No live data');
+      }
+
+      return result;
+    } 
+    catch (error) {
+      throw error;
+    }  
   }
 
   public async getPrimariesComm(): Promise<Map<string, string>> {

@@ -83,11 +83,7 @@ export class SimulatorController {
   // }
 
   @Post('StartPcap')
-  public async StartPcap(
-    @Res() res: Response,
-    @Body()
-    dto: { filename: string; uavNumber: number; channel: string; type: string },
-  ) {
+  public async StartPcap( @Res() res: Response, @Body() dto: { filename: string; uavNumber: number; channel: string; type: string },) {
     //pcaps are automatic - 6000 - fiberdown 6001 - fiberup
     try {
       const result = await this.simulatorservice.startPcap(dto);
@@ -118,6 +114,31 @@ export class SimulatorController {
         .json({ message: 'Failed to fetch data', error: error.message });
     }
   }
+
+  @Get('TimeCommunications')
+  public async TimeCommuincations(@Res() res: Response) {
+    try {
+      const data = await this.simulatorservice.getTimeCommunications();
+      return res.status(200).json(Object.fromEntries(data));
+    } catch (error) {
+      console.error('Error in controller:', error);
+      return res.status(500).json({ message: 'Failed to fetch data', error: error.message });
+    }
+  }
+
+  @Post('ChangeSimulateTime')
+  public async ChangeSimulateTime(@Res() res: Response ,@Body() dto: { uavNumber : number , time : number} ) {
+    try {
+      const data = await this.simulatorservice.changeSimulateTime(dto);
+      return res.status(200).json('message Changed Simulate Time to ' + data);
+    } catch (error) {
+      console.error('Error in controller:', error);
+      return res
+        .status(500)
+        .json({ message: 'Failed to fetch data', error: error.message });
+    }
+  }
+
 
   @Post('ChangePrimaryCommunications')
   public async changePrimaryCommunication(
