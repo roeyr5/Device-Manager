@@ -1,29 +1,54 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { SimulatorDto } from './dto/simulator.dto';
 import { first, firstValueFrom } from 'rxjs';
 import { InjectModel } from '@nestjs/mongoose';
 import { Uav } from './schema/uavs.schema';
 import { Model } from 'mongoose';
 import { link } from 'fs';
+import { response } from 'express';
+import { Kafka } from 'kafkajs';  
+import { ClientKafka } from '@nestjs/microservices';
+
 
 @Injectable()
 export class SimulatorService {
+  private kafkaAdmin: Kafka['admin'];
+
   constructor(
     private readonly httpService: HttpService,
     @InjectModel('Uavs') private UavsModel: Model<Uav>,
-  ) {}
+    @Inject('KAFKA_SERVICE') private readonly kafkaClient: ClientKafka,
+
+  ) {
+   
+  }
 
   private telemetryApi = 'http://localhost:5000/';
   private simulatorApi = 'http://localhost:7000/Simulator/';
+  private ltsApi = 'http://localhost:2000/'
+  private monitorApi = 'http://localhost:9000/'
 
-  public async StartstreamIcd(dto: SimulatorDto): Promise<void> {
+  
+  public async startKafkaConsumers(dto: SimulatorDto) : Promise<void> {
+    try{
+      const ltsUrl = `${this.ltsApi}AddTopic`
+      const monitorUrl = `${this.monitorApi}Monitor/AddTopic`
+
+      const ltsresponse = await firstValueFrom(this.httpService.post(ltsUrl, dto));
+      const monitorResponse = await firstValueFrom( this.httpService.post(monitorUrl, dto ));      
+
+    }
+    catch(error){
+      console.error('error starting kafka listeners')
+    }
+  }
+
+  public async startstreamIcd(dto: SimulatorDto): Promise<void> {
     try {
       const simulatorUrl = `${this.simulatorApi}StartIcd`;
-      const response = await firstValueFrom(
-        this.httpService.post(simulatorUrl, dto),
-      );
-      console.log('started ICD fetching :', response.data);
+      const response = await firstValueFrom(this.httpService.post(simulatorUrl, dto));
+      console.log('started ICDS fetching :');
     } catch (error) {
       console.error('error : ', error.message);
     }
@@ -36,7 +61,6 @@ export class SimulatorService {
       const response = await firstValueFrom(
         this.httpService.post(telemtryUrl, dto),
       );
-      console.log(response);
       return response.data;
     } catch (error) {
       console.error('error :', error.message);
@@ -181,7 +205,7 @@ export class SimulatorService {
     }
   }
 
-  public async changePrimaryCommunicate(uavNumber: string): Promise<void> {
+  public async changePrimaryCommunicate(uavNumber: number): Promise<void> {
     try {
       console.log(`Changing communication for UAV number: ${uavNumber}`);
       const simulatorUrl = `${this.simulatorApi}PrimaryCommunication`;

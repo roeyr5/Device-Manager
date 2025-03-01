@@ -5,6 +5,8 @@ import { Document } from 'mongoose';
 export class Parameter extends Document {
   @Prop({ required: true }) 
   Identifier: string;
+  @Prop({ required: false }) 
+  Units: string;
 }
 
 export const ParameterSchema = SchemaFactory.createForClass(Parameter);

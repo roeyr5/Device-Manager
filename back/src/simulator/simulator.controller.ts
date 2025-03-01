@@ -3,6 +3,7 @@ import { SimulatorService } from './simulator.service';
 import { SimulatorDto } from './dto/simulator.dto';
 import { Response } from 'express';
 import { UavNumber } from 'src/Parameters/parameters/schemas/uavsNumbera.schema';
+import { delay } from 'rxjs';
 
 @Controller('simulator')
 export class SimulatorController {
@@ -63,10 +64,12 @@ export class SimulatorController {
         return res.status(409).json({ message: 'Address in use' });
       if (result == '3') return res.status(500).json({ message: 'error' });
 
-      await this.simulatorservice.StartstreamIcd(dto); //after the check of telemtry it will fetch data in simualtor
+      await this.simulatorservice.startstreamIcd(dto); //after the check of telemtry it will fetch data in simualtor
+      this.simulatorservice.startKafkaConsumers(dto); // now we can fetch the data using kafka consumers
 
-      return res.status(200).json({ message: 'StartIcd executed' });
-    } catch (error) {
+      return res.status(200).json({ message: 'StartIcd executed - lts and monitor starting consuming ' });
+    } 
+    catch (error) {
       console.error('error in controller', error);
       return res
         .status(500)
@@ -143,7 +146,7 @@ export class SimulatorController {
   @Post('ChangePrimaryCommunications')
   public async changePrimaryCommunication(
     @Res() res: Response,
-    @Body() dto: { uavNumber: string },
+    @Body() dto: { uavNumber: number },
   ) {
     try {
       await this.simulatorservice.changePrimaryCommunicate(dto.uavNumber);

@@ -16,7 +16,7 @@ export class ParametersService {
 
   ) {}
 
-  async getParameters(type: string): Promise<string[]> {
+  async getParameters(type: string): Promise<{ Identifier: string; Units: string }[]> {
     const model =
       type === 'FBDown'
         ? this.fbDownModel
@@ -26,8 +26,8 @@ export class ParametersService {
         ? this.missionDownModel
         : this.missionUpModel;
 
-    const parameters = await model.find().select('Identifier').exec();
-    return parameters.map((param) => param.Identifier);
+    const parameters = await model.find().select('Identifier Units').exec();
+    return parameters.map((param) => ({Identifier : param.Identifier, Units : param.Units }));
   }
 
 

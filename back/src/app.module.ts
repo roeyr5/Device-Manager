@@ -6,6 +6,7 @@ import { UsersSchema } from './users/schemas/users.schema';
 import { UsersModule } from './users/users.module';
 import { ParametersModule } from './Parameters/parameters/parameters.module';
 import { SimulatorModule } from './simulator/simulator.module';
+import { ArchiveController } from './archive/archive.controller';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { SimulatorModule } from './simulator/simulator.module';
     ParametersModule,
     MongooseModule.forRoot('mongodb://localhost:27017/Simulator'),
     SimulatorModule],
-  controllers: [AppController],
+  controllers: [AppController, ArchiveController],
   providers: [AppService],
 })
 export class AppModule {}

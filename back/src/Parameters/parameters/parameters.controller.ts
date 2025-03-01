@@ -8,7 +8,7 @@ export class ParametersController {
   constructor(private readonly paraservice: ParametersService) {}
 
   @Get('/all')
-  async getAllParameters(): Promise<{ [key: string]: string[] }> {
+  async getAllParameters(): Promise<{ [key: string]:{ Identifier: string; Units: string }[] }> {
     return {
       FBDown: await this.paraservice.getParameters('FBDown'),
       FBUp: await this.paraservice.getParameters('FBUp'),
