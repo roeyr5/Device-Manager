@@ -7,14 +7,21 @@ import { UsersModule } from './users/users.module';
 import { ParametersModule } from './Parameters/parameters/parameters.module';
 import { SimulatorModule } from './simulator/simulator.module';
 import { ArchiveController } from './archive/archive.controller';
+import { ArchiveService } from './archive/archive.service';
+import { ArchiveModule } from './archive/archive.module';
+import { PresetsService } from './presets/presets.service';
+import { PresetsController } from './presets/presets.controller';
+import { PresetsModule } from './presets/presets.module';
 
 @Module({
   imports: [
+    MongooseModule.forRoot('mongodb://localhost:27017/Simulator'),
     UsersModule,
     ParametersModule,
-    MongooseModule.forRoot('mongodb://localhost:27017/Simulator'),
-    SimulatorModule],
-  controllers: [AppController, ArchiveController],
+    SimulatorModule,
+    ArchiveModule,
+    PresetsModule],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}

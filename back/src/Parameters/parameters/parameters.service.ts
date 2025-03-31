@@ -3,6 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Parameter } from './schemas/parameters.schema';
 import { Uav } from './schemas/uavs.schema';
+import { ParameterDto } from './schemas/parametersDto';
+
 
 @Injectable()
 export class ParametersService {
@@ -16,7 +18,7 @@ export class ParametersService {
 
   ) {}
 
-  async getParameters(type: string): Promise<{ Identifier: string; Units: string }[]> {
+  public async getParameters(type: string): Promise<ParameterDto[]> {
     const model =
       type === 'FBDown'
         ? this.fbDownModel
@@ -26,23 +28,29 @@ export class ParametersService {
         ? this.missionDownModel
         : this.missionUpModel;
 
-    const parameters = await model.find().select('Identifier Units').exec();
-    return parameters.map((param) => ({Identifier : param.Identifier, Units : param.Units }));
-  }
+
+        const parameters = await model.find().select('Identifier Units InterfaceLimitMin InterfaceLimitMax').exec();    
+        return parameters.map((param) => ({
+          Identifier: param.Identifier,
+          Units: param.Units,
+          InterfaceLimitMin: param.InterfaceLimitMin,
+          InterfaceLimitMax: param.InterfaceLimitMax,
+        }));  
+      }
 
 
-  async getUavs(): Promise<{ identifier: string; type: string }[]> {
-    const uavs = await this.UavsModel.find().select('identifier type').exec();
-    const identifiers = uavs.map((uav) => ({
-      identifier: uav.identifier,type: uav.type,
-    }));
+  // public async getUavs(): Promise<{ identifier: string; type: string }[]> {
+  //   const uavs = await this.UavsModel.find().select('identifier type').exec();
+  //   const identifiers = uavs.map((uav) => ({
+  //     identifier: uav.identifier,type: uav.type,
+  //   }));
 
-    return identifiers;
-  }
+  //   return identifiers;
+  // }
 
-  async getUavsNumbers(): Promise<string[]> {
-    const uavs = await this.UavsNumbersModel.find().select('identifier').exec();
-    const uavsIDs = [...uavs.map((id)=> id.identifier)];
-    return uavsIDs;
-  }
+  // async getUavsNumbers(): Promise<string[]> {
+  //   const uavs = await this.UavsNumbersModel.find().select('identifier').exec();
+  //   const uavsIDs = [...uavs.map((id)=> id.identifier)];
+  //   return uavsIDs;
+  // }
 }

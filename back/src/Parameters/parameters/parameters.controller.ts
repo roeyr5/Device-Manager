@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { ParametersService } from './parameters.service';
-import { promises } from 'node:readline';
+import { ParameterDto } from './schemas/parametersDto';
+
 
 @Controller('parameters')
 export class ParametersController {
@@ -8,7 +9,7 @@ export class ParametersController {
   constructor(private readonly paraservice: ParametersService) {}
 
   @Get('/all')
-  async getAllParameters(): Promise<{ [key: string]:{ Identifier: string; Units: string }[] }> {
+  async getAllParameters(): Promise<{ [key: string]: ParameterDto[] }> {
     return {
       FBDown: await this.paraservice.getParameters('FBDown'),
       FBUp: await this.paraservice.getParameters('FBUp'),
@@ -17,14 +18,14 @@ export class ParametersController {
     };
   }
 
-  @Get('uavs')
-  getuavs():Promise<{ identifier: string; type: string }[]> {
-    return this.paraservice.getUavs();
-  }
+  // @Get('uavs')
+  // getuavs():Promise<{ identifier: string; type: string }[]> {
+  //   return this.paraservice.getUavs();
+  // }
   
-  @Get('uavslist')
-  getUavsNumbers():Promise<string[]> {
-    return this.paraservice.getUavsNumbers();
+  // @Get('uavslist')
+  // getUavsNumbers():Promise<string[]> {
+  //   return this.paraservice.getUavsNumbers();
 
-  }
+  // }
 }
