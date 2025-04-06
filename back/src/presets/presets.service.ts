@@ -13,11 +13,24 @@ export class PresetsService {
     return await this.userModel.findOne({email : userName}).exec();
   }
 
-  public async createNewPreset(newPreset : createPresetDto){
-    return await this.userModel.updateOne({email : newPreset.email}, {$push : {presets : newPreset.presetItem}}).exec();
+  public async createNewPreset(newPreset: createPresetDto) {
+  // console.log("new preset: ", newPreset);
+  return await this.userModel.updateOne(
+    { email: newPreset.email },
+    { $push: {presets: { presetName: newPreset.presetName,presetItem: newPreset.presetItem }}}).exec();
   }
 
-  public async updatePreset(newPreset : createPresetDto){
-    return await this.userModel.updateOne({email:newPreset.email, "presets.presetName": newPreset.presetItem.presetName}, {$set : {"presets.$" : newPreset.presetItem}}).exec();
+  public async updatePreset(newPreset: createPresetDto) {
+  return await this.userModel.updateOne({ email: newPreset.email, "presets.presetName": newPreset.presetName },
+    {$set: { "presets.$.presetItem": newPreset.presetItem }}).exec();
   }
+
+  public async deletePreset(deletedPreset: createPresetDto) {
+    return await this.userModel.updateOne(
+      { email: deletedPreset.email },
+      { $pull: { presets: { presetName: deletedPreset.presetName } } }
+    ).exec();
+  }
+  
+
 }
