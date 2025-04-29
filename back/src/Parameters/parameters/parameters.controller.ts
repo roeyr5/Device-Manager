@@ -11,8 +11,8 @@ export class ParametersController {
   @Get('/all')
   async getAllParameters(): Promise<{ [key: string]: ParameterDto[] }> {
     return {
-      FBDown: await this.paraservice.getParameters('FBDown'),
-      FBUp: await this.paraservice.getParameters('FBUp'),
+      FiberBoxDown: await this.paraservice.getParameters('FBDown'),
+      FiberBoxUp: await this.paraservice.getParameters('FBUp'),
       MissionDown: await this.paraservice.getParameters('MissionDown'),
       MissionUp: await this.paraservice.getParameters('MissionUp'),
     };

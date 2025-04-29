@@ -3,12 +3,12 @@ import { SimulatorController } from './simulator.controller';
 import { SimulatorService } from './simulator.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { HttpModule } from '@nestjs/axios';
-import { UavSchema } from './schema/uavs.schema';
+import { Uav,UavSchema } from './schema/uavs.schema';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 
 
 @Module({
-  imports:[HttpModule , MongooseModule.forFeature([{ name: 'Uavs', schema: UavSchema }]),
+  imports:[HttpModule ,MongooseModule.forFeature([{ name: 'Uav', schema: UavSchema }]),
   ClientsModule.register([
     {
       name: 'KAFKA_SERVICE', 

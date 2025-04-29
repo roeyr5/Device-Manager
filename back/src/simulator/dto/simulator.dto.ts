@@ -1,10 +1,15 @@
 
 export class SimulatorDto {
-  uavnumber:number;
-  address:string;
-  port:number;
+  uavNumber:number;
+  address?:string;
+  port?:number;
   channel?: string;
   type?: string;
   status?:string;
   pcap?:boolean;
+}
+
+export class CreateUavDto {
+  uavNumber: number;
+  status: string;
 }

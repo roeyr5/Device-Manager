@@ -28,8 +28,8 @@ export class PresetsService {
   public async deletePreset(deletedPreset: createPresetDto) {
     return await this.userModel.updateOne(
       { email: deletedPreset.email },
-      { $pull: { presets: { presetName: deletedPreset.presetName } } }
-    ).exec();
+      { $pull :{presets: { presetName: deletedPreset.presetName , presetItem: deletedPreset.presetItem  } } }
+    );
   }
   
 

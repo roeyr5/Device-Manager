@@ -1,6 +1,7 @@
 import { Prop,Schema,SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 import { PresetItem } from "../dto/presetItem.dto";
+import { presetObj } from "../dto/presetItem.dto";
 
 @Schema()
 export class Users extends Document {
@@ -11,7 +12,7 @@ export class Users extends Document {
   password: string;
 
   @Prop({ required: true })
-  presets: PresetItem[];
+  presets: presetObj[];
 }
 
 export const presetSchema = SchemaFactory.createForClass(Users);

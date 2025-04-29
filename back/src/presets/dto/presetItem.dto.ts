@@ -38,3 +38,8 @@ export enum SingleChart {
   PIE = 2,
   LABEL = 3,
 }
+
+export interface presetObj{
+presetName : string;
+presetItem:PresetItem;
+}

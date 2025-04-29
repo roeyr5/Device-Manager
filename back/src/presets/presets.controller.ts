@@ -19,16 +19,15 @@ export class PresetsController {
 
     @Post('/createpreset')
     public async createPreset(@Res() response, @Body() newPreset : createPresetDto){
-      // console.log("newPreset", newPreset)
       const allPresets = await this.presetsservice.getAllPresets(newPreset.email);
 
       console.log("ofri",allPresets.presets);
 
-      allPresets.presets.forEach(item => {
-        if(item.presetName == newPreset.presetName){
-          return response.status(300).json({ statusCode: 300,message : 'Preset name exists'})
+      for (let item of allPresets.presets) {
+        if (item.presetName == newPreset.presetName) {
+          return response.status(300).json({ statusCode: 300, message: 'Preset name already exists' });
         }
-      });
+      }
       await this.presetsservice.createNewPreset(newPreset);
       return response.status(200).json({statusCode: 200,message : 'Preset created successfully'});
     }

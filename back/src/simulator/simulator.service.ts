@@ -1,6 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { Inject, Injectable } from '@nestjs/common';
-import { SimulatorDto } from './dto/simulator.dto';
+import { CreateUavDto, SimulatorDto } from './dto/simulator.dto';
 import { first, firstValueFrom } from 'rxjs';
 import { InjectModel } from '@nestjs/mongoose';
 import { Uav } from './schema/uavs.schema';
@@ -9,6 +9,7 @@ import { link } from 'fs';
 import { response } from 'express';
 import { Kafka } from 'kafkajs';  
 import { ClientKafka } from '@nestjs/microservices';
+import { log } from 'console';
 
 
 @Injectable()
@@ -17,24 +18,28 @@ export class SimulatorService {
 
   constructor(
     private readonly httpService: HttpService,
-    @InjectModel('Uavs') private UavsModel: Model<Uav>,
+    @InjectModel(Uav.name) private UavsModel: Model<Uav>,
     @Inject('KAFKA_SERVICE') private readonly kafkaClient: ClientKafka,
 
-  ) {
-   
-  }
+  ) {}
 
-  private telemetryApi = 'http://localhost:5000/';
+  private telemetryApi = 'http://localhost:8000/';
+  private orchestratorApi = 'http://localhost:5000/Orchestrator/';
   private simulatorApi = 'http://localhost:7000/Simulator/';
   private ltsApi = 'http://localhost:2000/'
   private monitorApi = 'http://localhost:9000/'
 
+  async addNewUav(createUavDto: CreateUavDto): Promise<Uav> {
+    const newUav = new this.UavsModel(createUavDto);
+    return await newUav.save();
+  }
   
   public async startKafkaConsumers(dto: SimulatorDto) : Promise<void> {
     try{
       const ltsUrl = `${this.ltsApi}AddTopic`
       const monitorUrl = `${this.monitorApi}Monitor/AddTopic`
 
+      console.log("roeyyy")
       const ltsresponse = await firstValueFrom(this.httpService.post(ltsUrl, dto));
       const monitorResponse = await firstValueFrom( this.httpService.post(monitorUrl, dto ));      
 
@@ -54,14 +59,40 @@ export class SimulatorService {
     }
   }
 
-
-  public async startIcd(dto: SimulatorDto): Promise<string> {
+  public async getActiveUavs(): Promise<number[]> {
     try {
-      const telemtryUrl = `${this.telemetryApi}Start`;
+      const activeUavs = await this.UavsModel.find({ status: 'active' }).select('uavNumber -_id'); 
+      console.log("trtrtr" , activeUavs)
+      return activeUavs.map(uav => uav.uavNumber); 
+    } catch (error) {
+      console.error('Error fetching active UAVs:', error.message);
+      throw error;
+    }
+  }
+
+
+  public async startIcd(dto: SimulatorDto): Promise<any> {
+    try {
+
+      const uavNumber: SimulatorDto = {
+        uavNumber: dto.uavNumber
+      }
+      const addUavUrl = `${this.orchestratorApi}newUav`;
+
       const response = await firstValueFrom(
-        this.httpService.post(telemtryUrl, dto),
+        this.httpService.post(addUavUrl, uavNumber),
       );
-      return response.data;
+
+      console.log(response);
+
+      const newUav = new this.UavsModel({
+        uavNumber: dto.uavNumber,
+        status: 'active',
+      });
+
+      await newUav.save();
+  
+      
     } catch (error) {
       console.error('error :', error.message);
       throw error;
@@ -128,7 +159,7 @@ export class SimulatorService {
       const firstChannel = sortedData[0];
 
       const channelData: SimulatorDto = {
-        uavnumber: dto.uavNumber,
+        uavNumber: dto.uavNumber,
         address: firstChannel.destinationIp,
         port: firstChannel.destinationPort,
         pcap: true,
@@ -221,7 +252,7 @@ export class SimulatorService {
 
   public async getTelemetryChannels(): Promise<Map<number, SimulatorDto[]>> {
     try {
-      const simulatorUrl = `${this.telemetryApi}GetChannels`;
+      const simulatorUrl = `${this.simulatorApi}GetChannels`;
       const response = await firstValueFrom(this.httpService.get(simulatorUrl));
       return response.data;
     } catch (error) {

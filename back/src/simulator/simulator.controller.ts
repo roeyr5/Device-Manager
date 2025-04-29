@@ -1,9 +1,10 @@
 import { Controller, Get, Post, Res, Body, HttpStatus } from '@nestjs/common';
 import { SimulatorService } from './simulator.service';
-import { SimulatorDto } from './dto/simulator.dto';
+import { CreateUavDto, SimulatorDto } from './dto/simulator.dto';
 import { Response } from 'express';
 import { UavNumber } from 'src/Parameters/parameters/schemas/uavsNumbera.schema';
 import { delay } from 'rxjs';
+import { log } from 'console';
 
 @Controller('simulator')
 export class SimulatorController {
@@ -22,6 +23,12 @@ export class SimulatorController {
       return res.status(500).json({ message: 'failed' });
     }
   }
+
+  @Post('add')
+  async addUav(@Body() createUavDto: CreateUavDto) {
+    return this.simulatorservice.addNewUav(createUavDto);
+  }
+
 
   @Post('Continue')
   public async Continue(
@@ -53,24 +60,23 @@ export class SimulatorController {
     }
   }
 
+  @Get('activeUavs')
+  async getActiveUavs(): Promise<number[]> {
+    return await this.simulatorservice.getActiveUavs();
+  }
+
   @Post('StartIcd')
   public async StartIcd(@Res() res: Response, @Body() dto: SimulatorDto) {
     try {
-      const result = await this.simulatorservice.startIcd(dto);
 
-      if (result == '1')
-        return res.status(409).json({ message: 'Uav already stream data' });
-      if (result == '2')
-        return res.status(409).json({ message: 'Address in use' });
-      if (result == '3') return res.status(500).json({ message: 'error' });
+      await this.simulatorservice.startIcd(dto);  
+      this.simulatorservice.startKafkaConsumers(dto);
 
-      await this.simulatorservice.startstreamIcd(dto); //after the check of telemtry it will fetch data in simualtor
-      this.simulatorservice.startKafkaConsumers(dto); // now we can fetch the data using kafka consumers
 
       return res.status(200).json({ message: 'StartIcd executed - lts and monitor starting consuming ' });
     } 
     catch (error) {
-      console.error('error in controller', error);
+      console.error('error in controller');
       return res
         .status(500)
         .json({ message: 'Failed to fetch data', error: error.message });
