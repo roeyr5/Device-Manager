@@ -108,38 +108,54 @@ export class SimulatorService {
     return response.data;
   }
 
-  public async ContinueIcd(dto: { port; address }): Promise<string> {
-    const telemtryUrl = `${this.telemetryApi}Continue`;
-    console.log(dto);
+  // public async ContinueIcd(dto: { port; address }): Promise<string> {
+  //   const telemtryUrl = `${this.telemetryApi}Continue`;
+  //   console.log(dto);
+  //   const response = await firstValueFrom(
+  //     this.httpService.post(telemtryUrl, dto),
+  //   );
+  //   return response.data;
+  // }
+
+  public async continueIcd(dto: { uavNumber; channelType }): Promise<string> {
+    const simulatorUrl = `${this.simulatorApi}ContinueSimulate`;
     const response = await firstValueFrom(
-      this.httpService.post(telemtryUrl, dto),
+      this.httpService.post(simulatorUrl, dto),
     );
     return response.data;
   }
 
-  public async stopIcd(dto: { port; address; pcap }): Promise<string> {
-    const telemtryUrl = `${this.telemetryApi}Stop`;
+  public async stopIcd(dto: { uavNumber; channelType }): Promise<string> {
+    const simulatorUrl = `${this.simulatorApi}StopSimulate`;
     const response = await firstValueFrom(
-      this.httpService.post(telemtryUrl, dto),
+      this.httpService.post(simulatorUrl, dto),
     );
-
-    if (dto.pcap) {
-      console.log('1');
-      const simualtorUrl = `${this.simulatorApi}StopPcap`;
-      const res = await firstValueFrom(
-        this.httpService.get(`${simualtorUrl}?port=${dto.port}`),
-      );
-    } else {
-      console.log('2');
-      const simualtorUrl = `${this.simulatorApi}StopIcd`;
-      const res = await firstValueFrom(
-        this.httpService.get(
-          `${simualtorUrl}?channelName=${response.data.uavNumber + response.data.channelNameType}`,
-        ),
-      );
-    }
     return response.data;
-  }
+  } 
+  
+  // public async stopIcd(dto: { port; address; pcap }): Promise<string> {
+  //   const telemtryUrl = `${this.telemetryApi}Stop`;
+  //   const response = await firstValueFrom(
+  //     this.httpService.post(telemtryUrl, dto),
+  //   );
+
+  //   if (dto.pcap) {
+  //     console.log('1');
+  //     const simualtorUrl = `${this.simulatorApi}StopPcap`;
+  //     const res = await firstValueFrom(
+  //       this.httpService.get(`${simualtorUrl}?port=${dto.port}`),
+  //     );
+  //   } else {
+  //     console.log('2');
+  //     const simualtorUrl = `${this.simulatorApi}StopIcd`;
+  //     const res = await firstValueFrom(
+  //       this.httpService.get(
+  //         `${simualtorUrl}?channelName=${response.data.uavNumber + response.data.channelNameType}`,
+  //       ),
+  //     );
+  //   }
+  //   return response.data;
+  // }
 
   public async changeSimulateTime (dto: { uavNumber : number , time : number}){
       const telemtryUrl = `${this.simulatorApi}ChangeSimulateTime`;

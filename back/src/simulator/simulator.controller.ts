@@ -33,10 +33,10 @@ export class SimulatorController {
   @Post('Continue')
   public async Continue(
     @Res() res: Response,
-    @Body() dto: { port: number; address: string },
+    @Body() dto: { uavNumber: number; channelType: string },
   ) {
     try {
-      const result = await this.simulatorservice.ContinueIcd(dto);
+      const result = await this.simulatorservice.continueIcd(dto);
       return res
         .status(200)
         .json({ message: 'Continue icd executed', data: result });
@@ -49,7 +49,7 @@ export class SimulatorController {
   @Post('Stop')
   public async Stop(
     @Res() res: Response,
-    @Body() dto: { port: number; address: string; pcap: boolean },
+    @Body() dto: { uavNumber: number; channelType: string; },
   ) {
     try {
       const result = await this.simulatorservice.stopIcd(dto);

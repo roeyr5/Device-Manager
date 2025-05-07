@@ -5,7 +5,7 @@ export class SimulatorDto {
   port?:number;
   channel?: string;
   type?: string;
-  status?:string;
+  status?:boolean;
   pcap?:boolean;
 }
 
