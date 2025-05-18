@@ -72,7 +72,6 @@ export class SimulatorController {
       await this.simulatorservice.startIcd(dto);  
       this.simulatorservice.startKafkaConsumers(dto);
 
-
       return res.status(200).json({ message: 'StartIcd executed - lts and monitor starting consuming ' });
     } 
     catch (error) {
